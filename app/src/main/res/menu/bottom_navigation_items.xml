@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_convenios"
+        android:icon="@drawable/ic_menu_convenio"
+        android:title="@string/item_4"/>
+
+    <item
+        android:id="@+id/action_oferta"
+        android:icon="@drawable/ic_offer"
+        android:title="@string/item_6"/>
+
+    <item
+        android:id="@+id/action_favoritos"
+        android:icon="@drawable/ic_like"
+        android:title="@string/item_1"/>
+    <item
+        android:id="@+id/action_buscar"
+        android:icon="@drawable/ic_search"
+        android:title="@string/item_5"/>
+
+
+    <!--<item
+        android:id="@+id/action_cuenta"
+        android:icon="@drawable/ic_cuenta"
+        android:title="@string/item_2"
+        android:visible="false"
+        android:enabled="false"/>-->
+
+
+
+    <item
+        android:id="@+id/action_contacto"
+        android:icon="@drawable/ic_contacto"
+        android:title="@string/item_3"/>
+
+</menu>

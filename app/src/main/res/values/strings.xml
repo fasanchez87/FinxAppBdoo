@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Findo</string>
+    <string name="title">Findo</string>
+    <string name="item_1">Favoritos</string>
+    <string name="item_2">Cuenta</string>
+    <string name="item_6">Ofertas</string>
+    <string name="item_3">Contacto</string>
+    <string name="item_4">Convenios</string>
+    <string name="item_5">Buscar</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_mapa_convenios">Convenios</string>
+</resources>

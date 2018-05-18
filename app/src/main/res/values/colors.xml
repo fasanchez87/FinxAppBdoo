@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#e6ad42</color>
+    <color name="colorPrimaryDark">#e6ad42</color>
+    <color name="colorAccent">#e6ad42</color>
+    <color name="colorAzulApp">#f9112548</color>
+    <color name="colorAzulAppFondo">#112548</color>
+    <color name="colorAzulAppTransparente">#e7112548</color>
+
+    <color name="colorBlanco">#FFFFFF</color>
+    <color name="colorBotonPresionado">#e2b359</color>
+    <color name="colorBotonPresionadoPantallaBlanca">#8da9e6</color>
+    <color name="colorBotonSinPresionar">#00aff0</color>
+    <color name="colorFloatingButton">#FF6600 </color>
+    <color name="colorGrisTextCollpser">#515151 </color>
+    <color name="colorRegistroCampos">#858585 </color>
+    <color name="white_trans">#99FFFFFF</color>
+    <color name="timestamp">#a0a3a7</color>
+    <color name="link">#0a80d1</color>
+    <color name="colorEditTextGris">#848484</color>
+    <color name="colorNumConvenios">#e4e4e4</color>
+    <color name="grisPantallas">#545454</color>
+    <color name="colorCatNotificacionRojo">#d87b86</color>
+    <color name="colorCatNotificacionVerde">#72a384</color>
+    <color name="colorCatNotificacionAmarillo">#eae66e</color>
+    <color name="colorLetraFondoEstrellado">#d9dadc</color>
+
+    <color name="colorDone">#0F9D58</color>
+    <color name="colorSchedule">#EF6C00</color>
+    <color name="colorAzulDicmax">#2d4896</color>
+    <color name="colorNegro">#000000</color>
+    <color name="colorAmarilloLevapan">#ecb730</color>
+</resources>

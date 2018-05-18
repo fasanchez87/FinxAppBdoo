@@ -1,0 +1,92 @@
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        tools:context="com.ingeniapps.findo.activity.Registro"
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/wallpaper"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="50dp">
+
+        <ImageView
+            android:id="@+id/imaRegistro"
+            android:layout_width="200dp"
+            android:layout_height="150dp"
+            android:layout_gravity="center"
+            android:visibility="visible"
+            app:srcCompat="@drawable/ic_imagen_login" />
+
+        <EditText
+            android:id="@+id/nombreUsuario"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/style_editext_cuadrangular_fondo_oscuro"
+            android:textColor="@color/colorLetraFondoEstrellado"
+            android:textColorHint="@color/colorLetraFondoEstrellado"
+            android:theme="@style/EditTextFondoBlanco"
+            android:hint="Nombre Completo"
+            android:inputType="textCapWords"
+            android:paddingLeft="10dp"
+             />
+
+        <EditText
+            android:id="@+id/emailUsuario"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/style_editext_cuadrangular_fondo_oscuro"
+            android:textColor="@color/colorLetraFondoEstrellado"
+            android:textColorHint="@color/colorLetraFondoEstrellado"
+            android:theme="@style/EditTextFondoBlanco"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:paddingLeft="10dp"
+             />
+
+        <EditText
+            android:id="@+id/claveUsuario"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/style_editext_cuadrangular_fondo_oscuro"
+            android:textColor="@color/colorLetraFondoEstrellado"
+            android:textColorHint="@color/colorLetraFondoEstrellado"
+            android:theme="@style/EditTextFondoBlanco"
+            android:hint="Contraseña"
+            android:inputType="textPassword"
+            android:paddingLeft="10dp"
+             />
+
+        <EditText
+            android:id="@+id/confirmaClaveUsuario"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/style_editext_cuadrangular_fondo_oscuro"
+            android:textColor="@color/colorLetraFondoEstrellado"
+            android:textColorHint="@color/colorLetraFondoEstrellado"
+            android:theme="@style/EditTextFondoBlanco"
+            android:hint="Confirmar Contraseña"
+            android:inputType="textPassword"
+            android:paddingLeft="10dp"
+            />
+
+        <Button
+            android:id="@+id/buttonRegistro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/button"
+            android:text="Registrarme"
+            android:textSize="18sp"
+            android:textAllCaps="false"
+            android:textColor="@color/colorBlanco"
+            android:visibility="visible" />
+
+    </LinearLayout>
+

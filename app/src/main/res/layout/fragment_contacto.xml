@@ -1,0 +1,115 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.ingeniapps.findo.fragment.Contacto">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible"
+        android:background="#ececec"
+        android:id="@+id/layoutMacroEsperaContacto">
+
+        <ImageView
+            android:id="@+id/not_found_convenios"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_centerInParent="true"
+            android:visibility="gone"
+            android:src="@drawable/sin_resu" />
+
+        <RelativeLayout
+            android:id="@+id/layoutEsperaConvenios"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center_horizontal"
+                android:indeterminateTint="@color/colorPrimary"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/progressBar"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center_horizontal"
+                android:paddingTop="4dp"
+                android:text="Un momento..."
+                android:textSize="18sp"/>
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorAzulAppFondo"
+        android:orientation="vertical"
+        android:paddingBottom="20dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="20dp"
+        android:weightSum="1"
+        android:visibility="gone"
+        android:id="@+id/llContacto">
+
+        <TextView
+            android:id="@+id/labelContacto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Compártenos tus comentarios"
+            android:textColor="@color/colorBlanco"
+            android:textSize="19sp"
+            android:layout_marginTop="20dp"/>
+
+        <EditText
+            android:id="@+id/editTextEmailContacto"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/style_editext_cuadrangular_fondo_oscuro"
+            android:hint="Email"
+            android:visibility="visible"
+            android:inputType="textEmailAddress"
+            android:paddingLeft="10dp"
+            android:textColor="@color/colorLetraFondoEstrellado"
+            android:textColorHint="@color/colorLetraFondoEstrellado"
+            android:theme="@style/EditTextFondoBlanco"/>
+
+        <EditText
+            android:id="@+id/editTextMensajeContacto"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="13dp"
+            android:layout_weight="0.56"
+            android:background="@drawable/style_editext_cuadrangular_fondo_oscuro"
+            android:gravity="top"
+            android:hint="Déjanos tus sugerencias, dudas o inquietudes"
+            android:inputType="textMultiLine"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:textColor="@color/colorLetraFondoEstrellado"
+            android:textColorHint="@color/colorLetraFondoEstrellado"
+            android:theme="@style/EditTextFondoBlanco"/>
+
+        <Button
+            android:id="@+id/buttonEnviarComentario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/button"
+            android:text="Enviar"
+            android:textAllCaps="false"
+            android:textColor="@color/colorBlanco"
+            android:textSize="15sp" />
+
+    </LinearLayout>
+
+</FrameLayout>

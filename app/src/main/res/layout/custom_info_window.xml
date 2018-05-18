@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Reusable map info window layout that shows an icon, title, and subtitle -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:background="@drawable/map_popover"
+              android:orientation="horizontal"
+              android:layout_margin="96dp"
+              android:layout_gravity="center_vertical"
+              android:paddingRight="16dp">
+
+    <ImageView
+            android:id="@+id/profileIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_marginRight="8dp"
+            />
+
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical">
+
+        <TextView
+                android:id="@+id/textNDTextTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:ellipsize="end"
+                android:textColor="@color/colorAzulApp"
+                android:singleLine="true"/>
+
+        <RatingBar
+            android:id="@+id/ratingBarMarker"
+            style="?android:attr/ratingBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:numStars="5"
+            android:visibility="gone"/>
+
+        <TextView
+                android:id="@+id/textNDTextHeading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/grisPantallas"
+                android:ellipsize="end"
+                android:singleLine="true"/>
+
+    </LinearLayout>
+
+</LinearLayout>

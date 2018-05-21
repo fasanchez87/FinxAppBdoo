@@ -159,7 +159,6 @@ public class DetalleOferta extends AppCompatActivity
         ll_espera_detalleOferta=(LinearLayout)findViewById(R.id.ll_espera_detalleOferta);
         scrollDetalleOferta=(NestedScrollView)findViewById(R.id.scrollDetalleOferta);
 
-
         imagenDetalleConvenio=(ImageView)findViewById(R.id.imagenDetalleOfertaDetalle);
         textViewDescuento=(TextView)findViewById(R.id.textViewDescuentoOfertaDetalle);
 
@@ -169,7 +168,6 @@ public class DetalleOferta extends AppCompatActivity
         descConvenio=(TextView)findViewById(R.id.descLargaOfertaDetalle);
 
         WebServiceGetDetalleOferta(codOferta);
-
 
     }
 

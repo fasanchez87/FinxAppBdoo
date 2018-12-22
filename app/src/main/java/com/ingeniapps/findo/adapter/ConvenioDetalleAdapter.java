@@ -5,7 +5,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,18 +12,16 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.android.volley.toolbox.ImageLoader;
 import com.bumptech.glide.Glide;
 import com.ingeniapps.findo.R;
 import com.ingeniapps.findo.beans.PuntoConvenio;
 import com.ingeniapps.findo.sharedPreferences.gestionSharedPreferences;
 import com.ingeniapps.findo.vars.vars;
-import com.ingeniapps.findo.volley.ControllerSingleton;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConvenioAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
+public class ConvenioDetalleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 {
     private Activity activity;
     private LayoutInflater inflater;
@@ -45,9 +42,9 @@ public class ConvenioAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         void onItemClick(PuntoConvenio convenio);
     }
 
-    private final ConvenioAdapter.OnItemClickListener listener;
+    private final ConvenioDetalleAdapter.OnItemClickListener listener;
 
-    public ConvenioAdapter(Activity activity, ArrayList<PuntoConvenio> listadoConvenios, ConvenioAdapter.OnItemClickListener listener)
+    public ConvenioDetalleAdapter(Activity activity, ArrayList<PuntoConvenio> listadoConvenios, ConvenioDetalleAdapter.OnItemClickListener listener)
     {
         this.activity=activity;
         this.listadoConvenios=listadoConvenios;
@@ -63,7 +60,7 @@ public class ConvenioAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         if(viewType==TYPE_CONVENIO)
         {
-            return new ConvenioHolder(inflater.inflate(R.layout.convenio_row_layout,parent,false));
+            return new ConvenioHolder(inflater.inflate(R.layout.convenio_detalle_row_layout,parent,false));
         }
         else
         {
@@ -110,12 +107,11 @@ public class ConvenioAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         ImageView logoConvenio;
         public TextView nomConvenio;
         public TextView nomCiudad;
-        public TextView nomCategoria;
-        //public TextView dirConvenio;
-        //public TextView distConvenio;
-        //public TextView timeConvenio;
-       // public TextView descuentoConvenio;
-        //public RatingBar ratingBarListaConvenio;
+        public TextView dirConvenio;
+        public TextView distConvenio;
+        public TextView timeConvenio;
+        public TextView descuentoConvenio;
+        public RatingBar ratingBarListaConvenio;
 
         public ConvenioHolder(View view)
         {
@@ -123,12 +119,11 @@ public class ConvenioAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             logoConvenio=(ImageView) view.findViewById(R.id.logoConvenio);
             nomConvenio=(TextView) view.findViewById(R.id.nomConvenio);
             nomCiudad=(TextView) view.findViewById(R.id.nomCiudad);
-            nomCategoria=(TextView) view.findViewById(R.id.nomCategoria);
-           /* dirConvenio=(TextView) view.findViewById(R.id.dirConvenio);
+            dirConvenio=(TextView) view.findViewById(R.id.dirConvenio);
             distConvenio=(TextView) view.findViewById(R.id.distConvenio);
             timeConvenio=(TextView) view.findViewById(R.id.timeConvenio);
             descuentoConvenio=(TextView) view.findViewById(R.id.descuentoConvenio);
-            ratingBarListaConvenio=(RatingBar) view.findViewById(R.id.ratingBarListaConvenio);*/
+            ratingBarListaConvenio=(RatingBar) view.findViewById(R.id.ratingBarListaConvenio);
         }
 
         void bindData(final PuntoConvenio convenio)
@@ -137,17 +132,17 @@ public class ConvenioAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     load(convenio.getImaProveedor().toString()).
                     thumbnail(0.5f).into(logoConvenio);
 
-            //dirConvenio.setText(convenio.getDirPunto());
+            dirConvenio.setText(convenio.getDirPunto());
 
-            /*if(TextUtils.equals(convenio.getCodTipo().toString(),"2"))//CAJERO
+            if(TextUtils.equals(convenio.getCodTipo().toString(),"2"))//CAJERO
             {
                 descuentoConvenio.setTextColor(Color.parseColor("#e6ad42"));
                 ratingBarListaConvenio.setVisibility(View.GONE);
                 descuentoConvenio.setText("Horario: "+convenio.getHorPunto());
                 nomConvenio.setText(convenio.getNomCajero());
-            }*/
+            }
 
-           /* if(TextUtils.equals(convenio.getCodTipo().toString(),"1"))//CONVENIO
+            if(TextUtils.equals(convenio.getCodTipo().toString(),"1"))//CONVENIO
             {
 
                 if(TextUtils.equals(convenio.getDescPunto(),"0"))
@@ -163,12 +158,11 @@ public class ConvenioAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
 
                 nomConvenio.setText(convenio.getNomProveedor());
-            }*/
+            }
 
             nomConvenio.setText(convenio.getNomProveedor());
-            nomCategoria.setText(convenio.getNomCategoria());
 
-            /*if(TextUtils.equals(convenio.getCalificacion().toString(),"null"))
+            if(TextUtils.equals(convenio.getCalificacion().toString(),"null"))
             {
                 ratingBarListaConvenio.setRating(0);
             }
@@ -205,11 +199,10 @@ public class ConvenioAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             else
             {
                 timeConvenio.setText(convenio.getTimePunto());
-            }*/
+            }
 
 
-            //nomCiudad.setText(convenio.getNomCiudad());
-            //nomCategoria.setText(convenio.getNomCategoria());
+            nomCiudad.setText(convenio.getNomCiudad());
 
             itemView.setOnClickListener(new View.OnClickListener()
             {

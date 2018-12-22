@@ -311,11 +311,11 @@ public class Principal extends AppCompatActivity
             {
                 //The External Storage Write Permission is granted to you... Continue your left job...
 
-                if(!isMyServiceRunning(LocationClientService.class))
+               /* if(!isMyServiceRunning(LocationClientService.class))
                 {
                     startGeofenceService();
                     Log.d(TAG, "service started from broadcast");
-                }
+                }*/
             }
             else
             {
@@ -323,12 +323,12 @@ public class Principal extends AppCompatActivity
             }
         }
     }
-    private void startGeofenceService()
+    /*private void startGeofenceService()
     {
         Log.i(TAG, "GeoFence ha sido iniciado");
         Intent intent = new Intent(this, LocationClientService.class);
         startService(intent);
-    }
+    }*/
 
     private AlarmManager alarmMgr;
     private PendingIntent alarmIntent;
@@ -411,7 +411,7 @@ public class Principal extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    private boolean isMyServiceRunning(Class<?> serviceClass)
+   /* private boolean isMyServiceRunning(Class<?> serviceClass)
     {
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
@@ -422,7 +422,7 @@ public class Principal extends AppCompatActivity
             }
         }
         return false;
-    }
+    }*/
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)
@@ -447,22 +447,22 @@ public class Principal extends AppCompatActivity
                                 if (!hasPermissionAccesssFineLocation || !hasPermissionAccesssCoarseLocation)
                                     ActivityCompat.requestPermissions(Principal.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION,
                                             android.Manifest.permission.ACCESS_COARSE_LOCATION}, MULTIPLE_PERMISSION_REQUEST_CODE);
-                                else
+                                /*else
 
                                 if(!isMyServiceRunning(LocationClientService.class)&&TextUtils.equals(gestionSharedPreferences.getString("indAlertaConvenio"),"1")&&haveNetworkConnection())
                                 {
                                     startGeofenceService();
                                     Log.d(TAG, "service started from broadcast");
-                                }
+                                }*/
 
                             }
                             else
                             {
-                                if(!isMyServiceRunning(LocationClientService.class)&&TextUtils.equals(gestionSharedPreferences.getString("indAlertaConvenio"),"1")&&haveNetworkConnection())
+                               /* if(!isMyServiceRunning(LocationClientService.class)&&TextUtils.equals(gestionSharedPreferences.getString("indAlertaConvenio"),"1")&&haveNetworkConnection())
                                 {
                                     startGeofenceService();
                                     Log.d(TAG, "service started from broadcast");
-                                }
+                                }*/
                             }
 
                             finish();
@@ -588,77 +588,6 @@ public class Principal extends AppCompatActivity
             }
         }
         return 0;
-    }
-
-    public class CheckUpdateAppPlayStore extends AsyncTask<String, Void, String>
-    {
-        protected String doInBackground(String... urls)
-        {
-            try
-            {
-                /*versionPlayStore=Jsoup.connect("https://play.google.com/store/apps/details?id=" + "com.ingeniapps.findo" + "&hl=es")
-                        .timeout(10000)
-                        .userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
-                        .referrer("http://www.google.com")
-                        .get()
-                        .select("div[itemprop=softwareVersion]")
-                        .first()
-                        .ownText();*/
-
-                versionPlayStore=Jsoup.connect("https://play.google.com/store/apps/details?id=" + "com.ingeniapps.findo" + "&hl=es")
-                        .timeout(10000)
-                        .userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
-                        .referrer("http://www.google.com")
-                        .get()
-                        .select(".hAyfc .htlgb")
-                        .get(2)
-                        .ownText();
-
-
-                return versionPlayStore;
-            }
-            catch (Exception e)
-            {
-                return "";
-            }
-        }
-
-        protected void onPostExecute(String string)
-        {
-            versionPlayStore = string;
-
-            Log.i("findoversion","update ok"+versionPlayStore);
-
-
-            if(!TextUtils.isEmpty(versionPlayStore)&&!TextUtils.equals(versionPlayStore,""))
-            {
-                if (compareVersions(currentVersion, versionPlayStore) == -1)
-                {
-                    if (!((Activity) context).isFinishing())
-                    {
-
-                        dialog = new Dialog(Principal.this);
-                        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                        dialog.setCancelable(true);
-                        dialog.setContentView(R.layout.custom_dialog);
-
-                        Button dialogButton = (Button) dialog.findViewById(R.id.btn_dialog);
-                        dialogButton.setOnClickListener(new View.OnClickListener()
-                        {
-                            @Override
-                            public void onClick(View v)
-                            {
-                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                intent.setData(Uri.parse("market://details?id=com.ingeniapps.findo"));
-                                startActivity(intent);
-                            }
-                        });
-
-                        dialog.show();
-                    }
-                }
-            }
-        }
     }
 
     private boolean checkPlayServices()

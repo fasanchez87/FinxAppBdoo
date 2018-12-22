@@ -323,31 +323,6 @@ public class MapaConvenios extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    /*@Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        int id = item.getItemId();
-        switch (id)
-        {
-            case android.R.id.home:
-            {
-                MapaConvenios.this.getActivity().finish();
-                enableMyLocation();
-                break;
-            }
-
-            case R.id.menu_busqueda_convenio:
-            {
-                Intent buscar=new Intent(MapaConvenios.this.getActivity(),Buscar.class);
-                buscar.putExtra("lat",mCurrentLocation.getLatitude());
-                buscar.putExtra("lon",mCurrentLocation.getLongitude());
-                startActivity(buscar);
-                break;
-            }
-        }
-        return true;
-    }*/
-
     @Override
     public void onPause()
     {

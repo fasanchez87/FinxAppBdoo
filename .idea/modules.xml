@@ -3,9 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Findo.iml" filepath="$PROJECT_DIR$/Findo.iml" />
-      <module fileurl="file://C:\Users\FABiO\Desktop\Findo\Findo.iml" filepath="C:\Users\FABiO\Desktop\Findo\Findo.iml" />
+      <module fileurl="file://C:/Users/FABiO/Desktop/Findo/Findo.iml" filepath="C:/Users/FABiO/Desktop/Findo/Findo.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://C:\Users\FABiO\Desktop\Findo\app\app.iml" filepath="C:\Users\FABiO\Desktop\Findo\app\app.iml" />
+      <module fileurl="file://C:/Users/FABiO/Desktop/Findo/app/app.iml" filepath="C:/Users/FABiO/Desktop/Findo/app/app.iml" />
     </modules>
   </component>
 </project>

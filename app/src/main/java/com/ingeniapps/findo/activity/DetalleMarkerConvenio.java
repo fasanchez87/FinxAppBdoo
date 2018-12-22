@@ -370,9 +370,6 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
                     sAux = sAux + "https://y57ym.app.goo.gl/V9Hh" +"\n\n";
                     i.putExtra(Intent.EXTRA_TEXT, sAux);
                     startActivityForResult(Intent.createChooser(i, "Comparte esta convenio con tus amigos justo ahora!"),MY_REQUEST_CODE);
-
-
-
                     //WebServiceCompartirMostrarOfertas(gestionSharedPreferences.getString("codEmpleado"));
 
                 }
@@ -407,15 +404,7 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
                 }
             }
         });
-
-
-
-
-
     // [END on_create]
-
-
-
     }
 
     @Override
@@ -425,17 +414,10 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
         {
             WebServiceCompartirMostrarOfertas(gestionSharedPreferences.getString("codEmpleado"));
         }
-
-       /* else
-        {
-            Toast.makeText(this,"cancelo",Toast.LENGTH_LONG).show();
-
-        }*/
     }
 
-
-
-    private void WebServiceCompartirMostrarOfertas(String codEmpleado) {
+    private void WebServiceCompartirMostrarOfertas(String codEmpleado)
+    {
         String _urlWebServiceUpdateToken = vars.ipServer.concat("/ws/registroCompartirConvenio");
 
         JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST, _urlWebServiceUpdateToken, null,
@@ -482,6 +464,7 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
                 headers.put("Content-Type", "application/json; charset=utf-8");
                 headers.put("WWW-Authenticate", "xBasic realm=".concat(""));
                 headers.put("codEmpleado", gestionSharedPreferences.getString("codEmpleado"));
+                headers.put("codPunto", ""+codPunto);
                 headers.put("tokenFCM", "" + FirebaseInstanceId.getInstance().getToken());
                 return headers;
             }

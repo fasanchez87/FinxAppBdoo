@@ -30,8 +30,8 @@ android {
         applicationId "com.ingeniapps.findo"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 22
-        versionName "22.0"
+        versionCode 24
+        versionName "1.3.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true

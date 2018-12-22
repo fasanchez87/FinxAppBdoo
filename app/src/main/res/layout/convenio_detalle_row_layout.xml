@@ -32,7 +32,7 @@
 
             <LinearLayout
                 android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:visibility="visible"
                 android:layout_weight="0">
@@ -50,20 +50,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:paddingLeft="5dp"
-                android:layout_gravity="center_vertical"
-                android:gravity="center_vertical"
+                android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingStart="15dp"
                 android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/nomCiudad"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:textColor="@color/colorLetraFondoEstrellado"
-                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/nomConvenio"
@@ -73,26 +63,23 @@
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/nomCategoria"
+                    android:id="@+id/nomCiudad"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="2dp"
-                    android:textColor="@color/colorAmarilloLevapan"
-                    />
+                    android:textColor="@color/colorLetraFondoEstrellado"
+                    android:textStyle="bold" />
 
                 <RatingBar
                     android:id="@+id/ratingBarListaConvenio"
                     style="?android:attr/ratingBarStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
                     android:numStars="5"
                     android:rating="2"/>
 
                 <TextView
                     android:id="@+id/dirConvenio"
                     android:layout_width="match_parent"
-                    android:visibility="gone"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorLetraFondoEstrellado"
                     />
@@ -100,7 +87,6 @@
                 <TextView
                     android:id="@+id/timeConvenio"
                     android:layout_width="match_parent"
-                    android:visibility="gone"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorLetraFondoEstrellado"
                     />
@@ -109,14 +95,12 @@
                     android:id="@+id/distConvenio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
                     android:textColor="@color/colorLetraFondoEstrellado"
                     />
 
                 <TextView
                     android:id="@+id/descuentoConvenio"
                     android:layout_width="match_parent"
-                    android:visibility="gone"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorLetraFondoEstrellado"
                     />

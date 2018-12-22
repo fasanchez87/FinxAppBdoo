@@ -25,6 +25,16 @@ public class PuntoConvenio
     private String codTipo;//Cajero / Convenio
     private String nomCajero;
 
+    public String getNomCategoria() {
+        return nomCategoria;
+    }
+
+    public void setNomCategoria(String nomCategoria) {
+        this.nomCategoria = nomCategoria;
+    }
+
+    private String nomCategoria;
+
     public String getHorPunto() {
         return horPunto;
     }

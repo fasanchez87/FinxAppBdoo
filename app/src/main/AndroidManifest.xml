@@ -84,8 +84,7 @@
 
         <activity
             android:name=".activity.DetalleMarkerConvenio"
-            android:screenOrientation="portrait"
-           >
+            android:screenOrientation="portrait">
 
             <!-- [START link_intent_filter] -->
             <intent-filter>
@@ -129,7 +128,8 @@
             android:name=".activity.Cuenta"
             android:label=""
             android:screenOrientation="portrait" />
-        <activity android:name=".activity.DetalleOferta"></activity>
+        <activity android:name=".activity.DetalleOferta" android:screenOrientation="portrait"/>
+        <activity android:name=".activity.DetalleConvenio" android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

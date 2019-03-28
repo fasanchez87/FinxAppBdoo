@@ -1,14 +1,21 @@
 package com.ingeniapps.findo.activity;
 
+import android.Manifest;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.media.Image;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
@@ -50,6 +57,15 @@ import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
 import com.daimajia.slider.library.Tricks.ViewPagerEx;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingRequest;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -68,6 +84,7 @@ import com.ingeniapps.findo.R;
 import com.ingeniapps.findo.beans.PuntoConvenio;
 import com.ingeniapps.findo.fragment.MapaConvenios;
 import com.ingeniapps.findo.service.LocationClientService;
+import com.ingeniapps.findo.service.TransitionIntentService;
 import com.ingeniapps.findo.sharedPreferences.gestionSharedPreferences;
 import com.ingeniapps.findo.volley.ControllerSingleton;
 import com.ingeniapps.findo.vars.vars;
@@ -76,22 +93,32 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener
+public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener
 {
 
     private SliderLayout mDemoSlider;
     DividerItemDecoration mDividerItemDecoration;
     ImageView favovitoOff;
     ImageView favovitoOn;
+    public static GoogleApiClient googleApiClient;
+    private PendingIntent geofencePendingIntent;
+    private List<Geofence> geofenceLists;
+    private float GEOFENCE_RADIUS = 500000;
+    Geofence geofenceConvenio;
+
+
 
     private String codPunto;
     private String codTipo;//Cajero o Convenio
     private boolean isNotifyPush=false;
+    private boolean indMostrarLista;
     public vars vars;
     private int meGusta;
     private RatingBar ratingBar;
@@ -101,7 +128,7 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
 
     private LinearLayout ll_espera_detalle,ll_ofertas_detalle_convenio;
     private NestedScrollView scrollDetallePunto;
-    private ImageView imagenDetalleConvenio,imageViewCharedConvenio;
+    private ImageView imagenDetalleConvenio,imageViewCharedConvenio,imageViewLocationPunto,imageViewListaPuntos;
     private TextView textViewDescuento,nomConvenio,descConvenio,textViewDireccionConvenio,textViewTelefonoConvenio,textViewObservacionConvenio;
     com.ingeniapps.findo.sharedPreferences.gestionSharedPreferences gestionSharedPreferences;
     Button buttonCheckinEnable,buttonCheckinDisable;
@@ -122,7 +149,9 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_detalle_marker_convenio);
+        createGoogleApi();
         context=this;
+        geofenceLists = new ArrayList<Geofence>();
 
         dynamicLinkUri = new Uri[1];
 
@@ -199,6 +228,7 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
                 codPunto=null;
                 codTipo=null;
                 isNotifyPush=false;
+                indMostrarLista=true;
             }
 
             else
@@ -206,6 +236,7 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
                 codPunto=extras.getString("codPunto");
                 codTipo=extras.getString("codTipo");
                 isNotifyPush=extras.getBoolean("isNotifyPush");
+                indMostrarLista=extras.getBoolean("indMostrarLista");
             }
         }
 
@@ -241,6 +272,12 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
         scrollDetallePunto=(NestedScrollView)findViewById(R.id.scrollDetallePunto);
         imagenDetalleConvenio=(ImageView)findViewById(R.id.imagenDetalleConvenio);
         imageViewCharedConvenio=(ImageView)findViewById(R.id.imageViewCharedConvenio);
+        imageViewLocationPunto=findViewById(R.id.imageViewLocationPunto);
+        imageViewListaPuntos=findViewById(R.id.imageViewListaPuntos);
+        if(!indMostrarLista)
+        {
+            imageViewListaPuntos.setVisibility(View.GONE);
+        }
         textViewDescuento=(TextView)findViewById(R.id.textViewDescuento);
         nomConvenio=(TextView)findViewById(R.id.nomConvenio);
         descConvenio=(TextView)findViewById(R.id.descConvenio);
@@ -380,6 +417,58 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
             }
         });
 
+
+
+        imageViewLocationPunto.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                try
+                {
+                    Log.i("coord",latPunto);
+                    Log.i("coord",lonPunto);
+                    Log.i("coord",dirPunto);
+                    Log.i("coord",nomPunto);
+                    Log.i("coord",imaPunto);
+
+                    Intent i=new Intent(DetalleMarkerConvenio.this, UbicacionPunto.class);
+                    i.putExtra("latPunto",latPunto);
+                    i.putExtra("lonPunto",lonPunto);
+                    i.putExtra("dirPunto",dirPunto);
+                    i.putExtra("nomPunto",nomPunto);
+                    i.putExtra("imaPunto",imaPunto);
+                    startActivity(i);
+                }
+                catch(Exception e)
+                {
+                    //e.toString();
+                }
+            }
+        });
+
+        imageViewListaPuntos.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                try
+                {
+                    Intent i=new Intent(DetalleMarkerConvenio.this, DetalleConvenio.class);
+                    i.putExtra("codProveedor",codProveedor);
+                    startActivity(i);
+                }
+                catch(Exception e)
+                {
+                    //e.toString();
+                }
+            }
+        });
+
+
+
+
+
         favovitoOff.setOnClickListener(new View.OnClickListener()
         {
             int meGusta = gestionSharedPreferences.getInt("like_punto"+codPunto);
@@ -407,6 +496,31 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
     // [END on_create]
     }
 
+    private String myLatitud;
+    private String myLongitud;
+
+    @Override
+    public void onLocationChanged(Location location)
+    {
+
+        myLatitud=""+location.getLatitude();
+        myLongitud=""+location.getLongitude();
+
+        /* Log.i(TAG, "lat changed " + location.getLatitude());
+        Log.i(TAG, "lng changed " + location.getLongitude());
+        Log.i(TAG, "battery " + getBatteryLevel());
+        Toast.makeText(getApplicationContext(), "Location changed service", Toast.LENGTH_SHORT).show();*/
+
+       /* if(getBatteryLevel()<30.0)
+        {
+            stopSelf();
+        }*/
+
+        //Toast.makeText(getApplicationContext(), "Location changed service"+location.getLatitude(), Toast.LENGTH_SHORT).show();
+
+
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
@@ -415,6 +529,59 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
             WebServiceCompartirMostrarOfertas(gestionSharedPreferences.getString("codEmpleado"));
         }
     }
+
+    private void createGoogleApi()
+    {
+        if (googleApiClient == null)
+        {
+            googleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        Log.i("ingeniaaplications", "onStart fired ..............");
+        googleApiClient.connect();
+    }
+
+
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle)
+    {
+        Log.i("ingeniaaplications", "onConnected - isConnected ...............: " + googleApiClient.isConnected());
+        Location l = null;
+        try
+        {
+            l = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        }
+        catch (SecurityException e)
+        {
+            e.printStackTrace();
+        }
+        if (l != null)
+        {
+        }
+
+        startLocationUpdate();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i)
+    {
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult)
+    {
+    }
+
 
     private void WebServiceCompartirMostrarOfertas(String codEmpleado)
     {
@@ -570,7 +737,7 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
         AnimationSet animation = new AnimationSet(true);
         animation.addAnimation(alphaAnimation);
         animation.addAnimation(scaleAnimation);
-        animation.setDuration(300);
+        animation.setDuration(110);
         //animation.setFillAfter(true);
         view.startAnimation(animation);
 
@@ -593,6 +760,9 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
 
 
         mDemoSlider.startAutoCycle();
+
+        if (!googleApiClient.isConnected() || googleApiClient != null)
+            googleApiClient.connect();
     }
 
 
@@ -629,7 +799,26 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
         mDemoSlider.stopAutoCycle();
         mailClientOpened = true;
 
+        LocationServices.GeofencingApi.removeGeofences(googleApiClient, getGeofencePendingIntent());
+        googleApiClient.disconnect();
         super.onStop();
+    }
+
+    private void startLocationUpdate()
+    {
+        LocationRequest mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(5000);
+        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        try
+        {
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, mLocationRequest, this);
+        }
+        catch (SecurityException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -653,9 +842,99 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
     {
     }
 
+    private GeofencingRequest.Builder builder;
+
+
+    private GeofencingRequest getGeofencingRequest()
+    {
+        if (geofenceLists.isEmpty() || geofenceLists.size()==0)
+        {
+            throw new IllegalArgumentException("No geofence has been added to this request.");
+        }
+        else
+        {
+            builder = new GeofencingRequest.Builder();
+            builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+            builder.addGeofences(geofenceLists);
+            return builder.build();
+        }
+    }
+
+    private PendingIntent getGeofencePendingIntent()
+    {
+        // Reuse the PendingIntent if we already have it.
+        if (geofencePendingIntent != null)
+        {
+            return geofencePendingIntent;
+        }
+        Intent intent = new Intent(this, TransitionIntentService.class);
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
+        // calling addGeofences() and removeGeofences().
+        geofencePendingIntent = PendingIntent.getService(DetalleMarkerConvenio.this, 0, intent, PendingIntent.
+                FLAG_UPDATE_CURRENT);
+        return geofencePendingIntent;
+    }
+
+    private void addGeofences()
+    {
+        try
+        {
+            if (!geofenceLists.isEmpty() && googleApiClient.isConnected() || !(googleApiClient == null))
+            {
+                new Handler().postDelayed(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                        {
+                            return;
+                        }
+
+
+                        LocationServices.GeofencingApi.addGeofences(googleApiClient, getGeofencingRequest(),
+                                getGeofencePendingIntent())
+                                .setResultCallback(new ResultCallback<Status>()
+                                {
+                                    @Override
+                                    public void onResult(Status status)
+                                    {
+                                        if (status.isSuccess())
+                                        {
+                                            Log.i("ingeniaaplications","adentro");
+
+                                        }
+                                        else
+                                        {
+                                            Log.i("ingeniaaplications","afuera"+status.getStatus());
+                                        }
+                                        // Remove notifiation here
+                                    }
+
+
+                                });
+
+                    }
+                }, 5000); //Damos tiempo a que se conecte googleApiClient.
+            }
+
+        }
+        catch (SecurityException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    private String latPunto, lonPunto, nomPunto, dirPunto, imaPunto, codProveedor;
+
+
+
+
     private void WebServiceGetDetallePunto(final String codPunto)
     {
         String _urlWebService= vars.ipServer.concat("/ws/getDetalleConvenio");
+        geofenceLists.clear();
+        geofenceConvenio=null;
 
         JsonObjectRequest jsonObjReq=new JsonObjectRequest(Request.Method.GET, _urlWebService, null,
                 new Response.Listener<JSONObject>()
@@ -677,6 +956,44 @@ public class DetalleMarkerConvenio extends AppCompatActivity implements BaseSlid
 
                                 textViewDescuento.setText(response.getString("descPunto"));
                                 nomConvenio.setText(response.getString("nomProveedor"));
+
+                                latPunto=response.getString("latPunto");
+                                lonPunto=response.getString("lonPunto");
+                                dirPunto=response.getString("dirPunto");
+                                nomPunto=response.getString("nomProveedor");
+                                imaPunto=response.getString("imaProveedor");
+                                codProveedor=response.getString("codProveedor");
+
+                                Log.i("ingeniaaplications","latPunto"+myLatitud);
+                                Log.i("ingeniaaplications","latPunto"+myLongitud);
+
+
+
+                                //ANALIZAMOS SI ESTA EN EL PUNTO CONVENIO
+                                geofenceConvenio=new Geofence.Builder()
+                                        .setRequestId(""+codPunto)
+                                        .setCircularRegion(Double.parseDouble(latPunto), Double.parseDouble(lonPunto), GEOFENCE_RADIUS)
+                                        .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER
+                                                | Geofence.GEOFENCE_TRANSITION_EXIT).build();
+
+                                geofenceLists.add(geofenceConvenio);
+
+                                Log.i("ingeniaaplications","latPunto"+geofenceLists.get(0).getRequestId());
+
+
+
+
+
+                                addGeofences();
+
+
+
+
+
+
+
+
 
                                 if(TextUtils.equals(response.getString("descPunto"),"0"))
                                 {

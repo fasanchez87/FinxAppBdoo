@@ -95,6 +95,21 @@
             android:background="@color/colorAzulAppFondo"
             android:visibility="gone">
 
+            <TextView
+                android:id="@+id/editTextNumOfertas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/progressBar"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:textSize="15sp"
+                android:text="0 convenios encontrados"
+                android:visibility="visible"
+                android:textColor="@color/colorNegro"
+                android:background="@color/colorNumConvenios"
+                />
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/recycler_view_ofertas"

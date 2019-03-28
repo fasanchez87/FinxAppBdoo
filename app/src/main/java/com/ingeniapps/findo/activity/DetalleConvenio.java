@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -54,6 +55,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.ingeniapps.findo.R;
 import com.ingeniapps.findo.adapter.ConvenioAdapter;
+import com.ingeniapps.findo.adapter.ConvenioDetalleAdapter;
 import com.ingeniapps.findo.adapter.EndlessRecyclerViewScrollListener;
 import com.ingeniapps.findo.adapter.RecyclerViewDisabler;
 import com.ingeniapps.findo.beans.PuntoConvenio;
@@ -86,7 +88,7 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
 
     private ArrayList<PuntoConvenio> listadoConvenios;
     private RecyclerView recycler_view_convenios;
-    private ConvenioAdapter mAdapter;
+    private ConvenioDetalleAdapter mAdapter;
     LinearLayoutManager mLayoutManager;
     LinearLayout linearHabilitarConvenios;
     RelativeLayout layoutNoFoundConvenios;
@@ -117,7 +119,7 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
     private boolean isBuscando=false;
     private EndlessRecyclerViewScrollListener scrollListener;
     private RecyclerView.OnItemTouchListener disabler;
-
+    private String codProveedor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -125,7 +127,6 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalle_convenio);
 
-        super.onCreate(savedInstanceState);
         vars=new vars();
         gestionSharedPreferences=new gestionSharedPreferences(DetalleConvenio.this);
         getWindow().setSoftInputMode(SOFT_INPUT_ADJUST_PAN);
@@ -133,6 +134,40 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
         disabler = new RecyclerViewDisabler();
 
         mRequestingLocationUpdates = false;
+
+        if (savedInstanceState == null)
+        {
+            Bundle extras = getIntent().getExtras();
+            if (extras == null)
+            {
+                codProveedor=null;
+            }
+
+            else
+            {
+                codProveedor=extras.getString("codProveedor");
+                //codOferta=extras.getString("codOferta");
+                //isNotifyPush=extras.getBoolean("isNotifyPush");
+            }
+        }
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        //this line shows back button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("");
+        getSupportActionBar().setElevation(0);
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                finish();
+            }
+        });
+
+
 
 
         mGoogleApiClient = new GoogleApiClient.Builder(DetalleConvenio.this)
@@ -161,7 +196,7 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
 
         imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        editTextNumConvenios=(TextView)findViewById(R.id.editTextNumConvenios);
+        editTextNumConvenios=findViewById(R.id.editTextNumConvenios);
         editTextBusquedaConvenio=(EditText)findViewById(R.id.editTextBusquedaConvenio);
         linearHabilitarConvenios=(LinearLayout)findViewById(R.id.linearHabilitarConvenios);
         layoutNoFoundConvenios=(RelativeLayout)findViewById(R.id.layoutNoFoundConvenios);
@@ -169,7 +204,7 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
         recycler_view_convenios=(RecyclerView) findViewById(R.id.recycler_view_convenios);
         mLayoutManager = new LinearLayoutManager(DetalleConvenio.this);
 
-        mAdapter = new ConvenioAdapter(DetalleConvenio.this,listadoConvenios,new ConvenioAdapter.OnItemClickListener()
+        mAdapter = new ConvenioDetalleAdapter(DetalleConvenio.this,listadoConvenios,new ConvenioDetalleAdapter.OnItemClickListener()
         {
             @Override
             public void onItemClick(PuntoConvenio convenio)
@@ -610,6 +645,8 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
         //Log.i("isLoaderMotion - loader", ""+isLoaderMotion);
         ///Log.i("isLoaderMotion - solicitando", ""+solicitando);
         Log.i("isLoaderMotion - isBuscando", ""+isBuscando);
+        Log.i("findoapp","codProveedor_1: "+codProveedor);
+        Log.i("findoapp","codEmpleado_1: "+gestionSharedPreferences.getString("codEmpleado"));
         if(isBuscando)
         {
             mAdapter.setMoreDataAvailable(false);
@@ -638,11 +675,43 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
                             {
                                 listadoConvenios.clear();
 
-                                JSONArray listaPuntosConvenios = response.getJSONArray("convenios");
+                                JSONArray listaPuntosConvenios = response.getJSONArray("puntos");
 
                                 double aux=999999999;
                                 double distanciaActual=0;
                                 double distancias[]=new double[listaPuntosConvenios.length()];
+
+                          /*  for (int x = 0; x < listaPuntosConvenios.length(); x++)
+                            {
+                                for (int i = 0; i < listaPuntosConvenios.length()-x-1; i++)
+                                {
+                                    JSONObject actual = (JSONObject) listaPuntosConvenios.get(i);
+                                    JSONObject posterior = (JSONObject) listaPuntosConvenios.get(i+1);
+
+                                    if(Float.parseFloat(actual.getString("dist")) < Float.parseFloat(posterior.getString("dist")))
+                                    {
+                                        float tmp = Float.parseFloat(posterior.getString("dist"));
+                                        listaPuntosConvenios.put((i+1),listaPuntosConvenios.get(i));
+                                        listaPuntosConvenios.put(i,tmp);
+                                    }
+                                }
+                            }
+
+
+
+                                for (int i = 0; i < listaPuntosConvenios.length(); i++)
+                                {
+                                    JSONObject jsonObject = (JSONObject) listaPuntosConvenios.get(i);
+                                    distanciaActual= Float.parseFloat(jsonObject.getString("dist"));
+                                    Log.i("distancia",""+distanciaActual);
+                                }*/
+
+
+
+
+
+
+
 
                                 for (int i = 0; i < listaPuntosConvenios.length(); i++)
                                 {
@@ -652,20 +721,45 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
                                     c.setNomProveedor(jsonObject.getString("nomProveedor"));
                                     c.setImaProveedor(jsonObject.getString("imaProveedor"));
                                     c.setType(jsonObject.getString("type"));
-                                    c.setNomCategoria(jsonObject.getString("nomCategoria"));
+                                    c.setCodPunto(jsonObject.getString("codPunto"));
+                                    //c.setNomCategoria(jsonObject.getString("nomCategoria"));
                                     c.setDirPunto(jsonObject.getString("dirPunto"));
                                     c.setDescPunto("Descuento del "+jsonObject.getString("descPunto")+"%");
                                     c.setLatPunto(jsonObject.getString("latPunto"));
                                     c.setLonPunto(jsonObject.getString("lonPunto"));
-                                    c.setDistPunto(jsonObject.getString("dist"));
-                                    c.setTimePunto(jsonObject.getString("time"));
+                                    c.setDistPunto("Distancia "+jsonObject.getString("dist"));
+                                    c.setTimePunto("Tiempo Llegada "+jsonObject.getString("time"));
                                     c.setNomCiudad(jsonObject.getString("nomCiudad"));
                                     c.setCalificacion(jsonObject.getString("numCalifica"));
                                     c.setCodTipo(jsonObject.getString("codTipo"));
                                     c.setNomCajero(jsonObject.getString("nomCajero"));
                                     c.setHorPunto(jsonObject.getString("horPunto"));
-                                    editTextNumConvenios.setText(listaPuntosConvenios.length()+" Convenios encontrados");
+
                                     listadoConvenios.add(c);
+                                }
+
+                                if(!TextUtils.equals(listadoConvenios.get(0).getCodTipo(),"2"))//NO ES CAJERO
+                                {
+                                    if(listadoConvenios.size()==1)
+                                    {
+                                        editTextNumConvenios.setText(listaPuntosConvenios.length()+" Punto Encontrado");
+                                    }
+                                    else
+                                    {
+                                        editTextNumConvenios.setText(listaPuntosConvenios.length()+" Puntos Encontrados");
+                                    }
+                                }
+                                else
+                                {
+                                    if(listadoConvenios.size()==1)
+                                    {
+                                        editTextNumConvenios.setText(listaPuntosConvenios.length()+" Cajero Encontrado");
+                                    }
+                                    else
+                                    {
+                                        editTextNumConvenios.setText(listaPuntosConvenios.length()+" Cajeros Encontrados");
+                                    }
+
                                 }
 
                                 layoutMacroEsperaConveniosFavoritos.setVisibility(View.GONE);
@@ -916,6 +1010,7 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
                 headers.put("MyToken", gestionSharedPreferences.getString("MyToken"));
                 headers.put("codEmpleado", gestionSharedPreferences.getString("codEmpleado"));
                 headers.put("numIndex", String.valueOf(pagina));
+                headers.put("codProveedor", ""+codProveedor);
                 return headers;
             }
         };
@@ -964,8 +1059,6 @@ public class DetalleConvenio extends AppCompatActivity implements OnMapReadyCall
                                     {
                                         c.setDescPunto("Descuento del "+jsonObject.getString("descPunto")+"%");
                                     }
-
-
 
                                     c.setLatPunto(jsonObject.getString("latPunto"));
                                     c.setLonPunto(jsonObject.getString("lonPunto"));

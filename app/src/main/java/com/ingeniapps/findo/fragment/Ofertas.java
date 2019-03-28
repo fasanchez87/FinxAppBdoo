@@ -73,6 +73,7 @@ public class Ofertas extends Fragment
     RelativeLayout layoutEsperaOfertas;
     RelativeLayout layoutMacroEsperaOfertas;
     RelativeLayout layoutNoFavoritos;
+    private TextView editTextNumOfertas;
 
     Context context;
     private boolean solicitando=false;
@@ -137,6 +138,7 @@ public class Ofertas extends Fragment
         layoutMacroEsperaOfertas=(RelativeLayout)getActivity().findViewById(R.id.layoutMacroEsperaOfertas);
         layoutNoFavoritos=(RelativeLayout)getActivity().findViewById(R.id.layoutNoFavoritos);
         linearHabilitarOfertas=(LinearLayout)getActivity().findViewById(R.id.linearHabilitarOfertas);
+        editTextNumOfertas=getActivity().findViewById(R.id.editTextNumOfertas);
 
         recycler_view_ofertas=(RecyclerView) getActivity().findViewById(R.id.recycler_view_ofertas);
         mLayoutManager = new LinearLayoutManager(getActivity());
@@ -247,6 +249,8 @@ public class Ofertas extends Fragment
                                 listadoOfertas.clear();
 
                                 JSONArray listaOfertas = response.getJSONArray("ofertas");
+
+                                editTextNumOfertas.setText(listaOfertas.length()+" Ofertas Encontradas");
 
                                 for (int i = 0; i < listaOfertas.length(); i++)
                                 {

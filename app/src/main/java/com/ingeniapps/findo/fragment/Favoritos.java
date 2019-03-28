@@ -70,6 +70,7 @@ public class Favoritos extends Fragment
     RelativeLayout layoutEspera;
     RelativeLayout layoutMacroEsperaFavoritos;
     RelativeLayout layoutNoFavoritos;
+    private TextView editTextNumFavoritos;
 
     Context context;
     private boolean solicitando=false;
@@ -131,6 +132,7 @@ public class Favoritos extends Fragment
         context = getActivity();
 
         not_found_convenios=(ImageView)getActivity().findViewById(R.id.not_found_convenios);
+        editTextNumFavoritos=getActivity().findViewById(R.id.editTextNumFavoritos);
         layoutEspera=(RelativeLayout)getActivity().findViewById(R.id.layoutEsperaConvenios);
         layoutMacroEsperaFavoritos=(RelativeLayout)getActivity().findViewById(R.id.layoutMacroEsperaConveniosFavoritos);
         layoutNoFavoritos=(RelativeLayout)getActivity().findViewById(R.id.layoutNoFavoritos);
@@ -139,7 +141,18 @@ public class Favoritos extends Fragment
         recycler_view_favoritos=(RecyclerView) getActivity().findViewById(R.id.recycler_view_favoritos);
         mLayoutManager = new LinearLayoutManager(getActivity());
 
-        mAdapter = new ConvenioAdapter(getActivity(),listadoFavoritos,new ConvenioAdapter.OnItemClickListener()
+        mAdapter = new ConvenioAdapter(Favoritos.this.getActivity(),new ConvenioAdapter.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(PuntoConvenio convenio)
+            {
+                Intent i=new Intent(Favoritos.this.getActivity(), DetalleMarkerConvenio.class);
+                i.putExtra("codPunto",convenio.getCodPunto());
+                startActivity(i);
+            }
+        });
+
+       /* mAdapter = new ConvenioAdapter(getActivity(),listadoFavoritos,new ConvenioAdapter.OnItemClickListener()
         {
             @Override
             public void onItemClick(PuntoConvenio convenio)
@@ -148,7 +161,7 @@ public class Favoritos extends Fragment
                 i.putExtra("codPunto",convenio.getCodPunto());
                 startActivity(i);
             }
-        });
+        });*/
 
         recycler_view_favoritos.setHasFixedSize(true);
         recycler_view_favoritos.setLayoutManager(mLayoutManager);
@@ -233,6 +246,7 @@ public class Favoritos extends Fragment
     private void WebServiceGetPuntosFavoritos()
     {
         String _urlWebService = vars.ipServer.concat("/ws/getPuntosLike");
+        mAdapter.clear();
 
         JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET, _urlWebService, null,
                 new Response.Listener<JSONObject>()
@@ -248,6 +262,7 @@ public class Favoritos extends Fragment
 
 
                                 JSONArray listaPuntosConvenios = response.getJSONArray("puntos");
+                                editTextNumFavoritos.setText(listaPuntosConvenios.length()+" Convenios Favoritos");
 
                                 double aux=999999999;
                                 double distanciaActual=0;
@@ -258,6 +273,7 @@ public class Favoritos extends Fragment
                                     JSONObject jsonObject = (JSONObject) listaPuntosConvenios.get(i);
                                     final PuntoConvenio c = new PuntoConvenio();
                                     c.setCodPunto(jsonObject.getString("codPunto"));
+                                    c.setNomCategoria(jsonObject.getString("nomCategoria"));
                                     c.setNomProveedor(jsonObject.getString("nomProveedor"));
                                     c.setImaProveedor(jsonObject.getString("imaProveedor"));
                                     c.setType(jsonObject.getString("type"));
@@ -318,6 +334,8 @@ public class Favoritos extends Fragment
                                 layoutNoFavoritos.setVisibility(View.VISIBLE);
 
                             }
+
+                            mAdapter.addAll(listadoFavoritos);
                         }
                         catch (JSONException e)
                         {

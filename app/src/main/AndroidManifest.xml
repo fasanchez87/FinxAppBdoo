@@ -16,6 +16,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".activity.Categorias"></activity>
+
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/icon_push_small" />
@@ -24,24 +26,18 @@
             android:resource="@color/colorPrimary" />
         <meta-data
             android:name="io.fabric.ApiKey"
-            android:value="631c6105886883dda61813eb33aec55acf43ea0f" />
-
-        <!-- [START firebase_service] -->
+            android:value="631c6105886883dda61813eb33aec55acf43ea0f" /> <!-- [START firebase_service] -->
         <service android:name=".fcm.MyFirebaseMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </service>
-        <!-- [END firebase_service] -->
+        </service> <!-- [END firebase_service] -->
         <!-- [START firebase_iid_service] -->
         <service android:name=".fcm.MyFirebaseInstanceIDService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
-        </service>
-        <!-- [END firebase_iid_service] -->
-
-
+        </service> <!-- [END firebase_iid_service] -->
         <!-- Activitys -->
         <activity
             android:name=".activity.Splash"
@@ -100,7 +96,6 @@
             <!-- [END link_intent_filter] -->
 
         </activity>
-
         <!--
         &lt;!&ndash; Servicios y Alarma de Geolocalizacion Background &ndash;&gt;
         <service
@@ -112,8 +107,6 @@
             android:name="service.AlarmReceiver"
             android:enabled="true" />
         -->
-
-
         <!--
         &lt;!&ndash; Inicio de Servicio Background cuando se enciende el telefono &ndash;&gt;
         <receiver android:name="com.ingeniapps.findo.broadcastreceiver.Startup" >
@@ -123,13 +116,19 @@
             </intent-filter>
         </receiver>
         -->
-
         <activity
             android:name=".activity.Cuenta"
             android:label=""
             android:screenOrientation="portrait" />
-        <activity android:name=".activity.DetalleOferta" android:screenOrientation="portrait"/>
-        <activity android:name=".activity.DetalleConvenio" android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".activity.DetalleOferta"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.DetalleConvenio"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.UbicacionPunto"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

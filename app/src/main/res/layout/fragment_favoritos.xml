@@ -131,6 +131,21 @@
                     tools:ignore="contentDescription" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/editTextNumFavoritos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/progressBar"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:textSize="15sp"
+                android:visibility="visible"
+                android:textColor="@color/colorNegro"
+                android:background="@color/colorNumConvenios"
+                />
+
 
             <TextView
                 android:id="@+id/editTextNumConvenios"

@@ -8,6 +8,18 @@ public class Categoria
 {
     private String codCategoria;
     private boolean isSelected=false;
+    private String nomCategoria;
+    private String type;
+
+    public String getImaCategoria() {
+        return imaCategoria;
+    }
+
+    public void setImaCategoria(String imaCategoria) {
+        this.imaCategoria = imaCategoria;
+    }
+
+    private String imaCategoria;
 
 
     public boolean isSelected() {
@@ -44,8 +56,7 @@ public class Categoria
         this.type = type;
     }
 
-    private String nomCategoria;
-    private String type;
+
 
     public Categoria()
     {

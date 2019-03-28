@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:custom="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
@@ -136,6 +137,29 @@
                     android:textStyle="bold" />
 
                 <ImageView
+                    android:id="@+id/imageViewListaPuntos"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/ic_list_puntos" />
+
+                <android.support.v4.widget.Space
+                    android:layout_width="20dp"
+                    android:layout_height="wrap_content" />
+
+
+                <ImageView
+                    android:id="@+id/imageViewLocationPunto"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/ic_marker_punto" />
+
+                <android.support.v4.widget.Space
+                    android:layout_width="20dp"
+                    android:layout_height="wrap_content" />
+
+                <ImageView
                     android:id="@+id/imageViewMeGustaConvenioOff"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
@@ -261,6 +285,7 @@
                 <TextView
                     android:id="@+id/textViewTelefonoConvenio"
                     android:layout_width="wrap_content"
+                    android:textIsSelectable="true"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom"
                     android:layout_weight="0"

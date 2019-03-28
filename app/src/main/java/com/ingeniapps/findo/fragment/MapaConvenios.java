@@ -668,8 +668,18 @@ public class MapaConvenios extends Fragment implements OnMapReadyCallback,
                                         Intent i=new Intent(MapaConvenios.this.getActivity(), DetalleMarkerConvenio.class);
                                         i.putExtra("codPunto",eventInfo.getCodPunto());
                                         i.putExtra("codTipo",eventInfo.getCodTipo());
+
+                                        i.putExtra("latitud",eventInfo.getLatPunto());
+                                        i.putExtra("longitud",eventInfo.getLonPunto());
+                                        i.putExtra("nomEmpresa",eventInfo.getNomProveedor());
+                                        i.putExtra("nomEmpresa",eventInfo.getNomCajero());
+                                        i.putExtra("imaEmpresa",eventInfo.getImaProveedor());
+                                        i.putExtra("dirEmpresa",eventInfo.getDirPunto());
+                                        i.putExtra("codProveedor",eventInfo.getCodProveedor());
+                                        i.putExtra("indMostrarLista",true);
                                         startActivity(i);
                                         ///arg0.hideInfoWindow();
+
                                     }
                                 });
 

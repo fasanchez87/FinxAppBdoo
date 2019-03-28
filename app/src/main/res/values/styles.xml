@@ -10,6 +10,7 @@
         <item name="windowNoTitle">true</item>
         <item name="android:actionMenuTextColor">@color/colorAzulApp</item>
         <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">@font/avenir_ltstd_light</item>
     </style>
 
 

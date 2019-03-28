@@ -18,6 +18,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -34,6 +35,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -55,13 +57,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.ingeniapps.findo.R;
+import com.ingeniapps.findo.activity.Categorias;
 import com.ingeniapps.findo.activity.DetalleConvenio;
-import com.ingeniapps.findo.activity.DetalleMarkerConvenio;
 import com.ingeniapps.findo.adapter.ConvenioAdapter;
-import com.ingeniapps.findo.adapter.EndlessRecyclerViewScrollListener;
 import com.ingeniapps.findo.adapter.RecyclerViewDisabler;
 import com.ingeniapps.findo.beans.PuntoConvenio;
 import com.ingeniapps.findo.sharedPreferences.gestionSharedPreferences;
+import com.ingeniapps.findo.util.PaginationScrollListener;
 import com.ingeniapps.findo.vars.vars;
 import com.ingeniapps.findo.volley.ControllerSingleton;
 import com.yanzhenjie.permission.AndPermission;
@@ -117,15 +119,16 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
     vars vars;
     private InputMethodManager imm = null;
     private RelativeLayout layoutMacroEsperaConveniosFavoritos;
-    private boolean solicitando=false;
-    private boolean isLoaderMotion=false;
     private boolean isBuscando=false;
-    private EndlessRecyclerViewScrollListener scrollListener;
-    private RecyclerView.OnItemTouchListener disabler;
+
+    private static final int PAGE_START = 0;
+    private boolean isLoading = false;
+    private boolean isLastPage = false;
+    private int TOTAL_PAGES;
+    private int currentPage = PAGE_START;
 
     public Buscar()
     {
-
     }
 
     @Override
@@ -136,8 +139,6 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
         gestionSharedPreferences=new gestionSharedPreferences(Buscar.this.getActivity());
         getActivity().getWindow().setSoftInputMode(SOFT_INPUT_ADJUST_PAN);
         createLocationRequest();
-        disabler = new RecyclerViewDisabler();
-
     }
 
     @Override
@@ -151,10 +152,7 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
     public void onViewCreated(View view, Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
-
         mRequestingLocationUpdates = false;
-
-
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
@@ -187,27 +185,16 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
         layoutNoFoundConvenios=(RelativeLayout)getActivity().findViewById(R.id.layoutNoFoundConvenios);
 
         recycler_view_convenios=(RecyclerView) getActivity().findViewById(R.id.recycler_view_convenios);
-        mLayoutManager = new LinearLayoutManager(Buscar.this.getActivity());
+        mLayoutManager = new LinearLayoutManager(Buscar.this.getActivity(),LinearLayoutManager.VERTICAL, false);
 
-        /*mAdapter = new ConvenioAdapter(Buscar.this.getActivity(),listadoConvenios,new ConvenioAdapter.OnItemClickListener()
-        {
-            @Override
-            public void onItemClick(PuntoConvenio convenio)
-            {
-                Intent i=new Intent(Buscar.this.getActivity(), DetalleMarkerConvenio.class);
-                i.putExtra("codPunto",convenio.getCodPunto());
-                startActivity(i);
-            }
-        });*/
-
-        mAdapter = new ConvenioAdapter(Buscar.this.getActivity(),listadoConvenios,new ConvenioAdapter.OnItemClickListener()
+        mAdapter = new ConvenioAdapter(Buscar.this.getActivity(),new ConvenioAdapter.OnItemClickListener()
         {
             @Override
             public void onItemClick(PuntoConvenio convenio)
             {
                 Intent i=new Intent(Buscar.this.getActivity(), DetalleConvenio.class);
                 i.putExtra("codProveedor",convenio.getCodProveedor());
-                startActivity(i);
+                startActivityForResult(i, 1);
             }
         });
 
@@ -217,31 +204,34 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
         recycler_view_convenios.setOverScrollMode(View.OVER_SCROLL_NEVER);
         recycler_view_convenios.setAdapter(mAdapter);
 
-        scrollListener = new EndlessRecyclerViewScrollListener(mLayoutManager)
+        recycler_view_convenios.addOnScrollListener(new PaginationScrollListener(mLayoutManager)
         {
             @Override
-            public void onLoadMore(final int page, final int totalItemsCount, final RecyclerView view)
+            protected void loadMoreItems()
             {
-                final int curSize = mAdapter.getItemCount();
-
-                view.post(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        if(!solicitando)
-                        {
-                            isLoaderMotion=true;
-                            Log.i("onloadmore","cargando mas");
-                            WebServiceGetPuntosConvenios(null);
-                            //pagina+=1;
-                        }
-                    }
-                });
+                isLoading = true;
+                currentPage += 1;
+                Log.i("currentPage",""+currentPage);
+                WebServiceGetPuntosConveniosMore(null);
             }
-        };
 
-        recycler_view_convenios.addOnScrollListener(scrollListener);
+            @Override
+            public int getTotalPageCount() {
+                return TOTAL_PAGES;
+            }
+
+            @Override
+            public boolean isLastPage() {
+                return isLastPage;
+            }
+
+            @Override
+            public boolean isLoading() {
+                return isLoading;
+            }
+
+
+        });
 
         ImageView buttonBuscar = (ImageView) getActivity().findViewById(R.id.ivSearch);
         buttonBuscar.setClickable(true);
@@ -252,34 +242,42 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
             {
                 if(editTextBusquedaConvenio.getText().length()>=1)
                 {
-                    recycler_view_convenios.removeOnScrollListener(scrollListener);
                     imm.hideSoftInputFromWindow(editTextBusquedaConvenio.getWindowToken(), 0);
                     progressDialog.show();
                     progressDialog.setCancelable(false);
-                    //isBuscando=true;
-                    //WebServiceGetPuntosConvenios(editTextBusquedaConvenio.getText().toString());
-                    WebServiceGetPuntosConveniosP(editTextBusquedaConvenio.getText().toString());
+                    isBuscando=true;
+                    mAdapter.clear();
+                    categos="";
+                    WebServiceFinderConvenio(editTextBusquedaConvenio.getText().toString());
                 }
                 else
                 if(TextUtils.isEmpty(editTextBusquedaConvenio.getText()))
                 {
+                    isLastPage=false;
+                    currentPage=0;
+                    isLoad=false;
                     editTextNumConvenios.setVisibility(View.GONE);
-                    recycler_view_convenios.addOnScrollListener(scrollListener);
                     imm.hideSoftInputFromWindow(editTextBusquedaConvenio.getWindowToken(), 0);
                     progressDialog.show();
                     progressDialog.setCancelable(false);
                     isBuscando=false;
-                    WebServiceGetPuntosConvenios(editTextBusquedaConvenio.getText().toString());
+                    mAdapter.clear();
+                    WebServiceGetPuntosConvenios(null);
                 }
-               /* else
-                if(editTextBusquedaConvenio.getText().length()<4)
-                {
-                    Snackbar.make(getActivity().findViewById(android.R.id.content),
-                            "La busqueda debe tener mínimo (3) caracteres.", Snackbar.LENGTH_LONG).show();
-                }*/
             }
         });
 
+        ImageView ivFiltro = (ImageView) getActivity().findViewById(R.id.ivFiltro);
+        ivFiltro.setClickable(true);
+        ivFiltro.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Intent i=new Intent(Buscar.this.getActivity(), Categorias.class);
+                startActivityForResult(i,1);
+            }
+        });
     }
 
     @Override
@@ -298,7 +296,6 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
         }
 
         updateTokenFCMToServer();
-
     }
 
     private void updateTokenFCMToServer()
@@ -460,12 +457,10 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
             {
                 case REQUEST_CODE_PERMISSION_GEOLOCATION:
                 {
-                    //getActivity().finish();
                     break;
                 }
                 case REQUEST_CODE_PERMISSION_OTHER:
                 {
-                    //Toast.makeText(UbicacionDanoMap.this, R.string.message_post_failed, Toast.LENGTH_SHORT).show();
                     break;
                 }
             }
@@ -498,16 +493,31 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
         }
     };
 
+    private ArrayList<String> categorias;
+    private String categos="";
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-        switch (requestCode)
+        if (requestCode == REQUEST_CODE_SETTING)
         {
-            case REQUEST_CODE_SETTING:
-            {
-                enableMyLocation();
-                break;
+            enableMyLocation();
+        }
+
+        if (resultCode == 1)
+        {
+            categos="";
+            categorias = data.getStringArrayListExtra("categorias");
+            for(int i=0; i<categorias.size(); i++){
+                categos+=categorias.get(i)+",";
             }
+            categos=categos.replaceAll(",$", "");
+            FragmentTransaction ft = getFragmentManager().beginTransaction();
+            ft.detach(this).attach(this).commit();
+            WebServiceFinderConvenio(null);
+        }
+        if (resultCode == Activity.RESULT_CANCELED)
+        {
         }
     }
 
@@ -524,6 +534,7 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
         if (ContextCompat.checkSelfPermission(Buscar.this.getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED)
         {
+
         }
 
         if (mGoogleMap != null)
@@ -636,26 +647,7 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
     private void WebServiceGetPuntosConvenios(final String busqueda)
     {
         isLoad=true;
-        String _urlWebService = vars.ipServer.concat("/ws/buscarConveniosGeneral");
-        //Log.i("isLoaderMotion - loader", ""+isLoaderMotion);
-        ///Log.i("isLoaderMotion - solicitando", ""+solicitando);
-        Log.i("isLoaderMotion - isBuscando", ""+isBuscando);
-        if(isBuscando)
-        {
-            mAdapter.setMoreDataAvailable(false);
-        }
-
-
-        if(isLoaderMotion && !isBuscando)
-        {
-            isLoaderMotion=false;
-            solicitando=true;//PARA ESPERAR A QUE CARGUEN LOS DEMAS ITEMS Y LOGRAR OCULTAR EL PROGRESS.
-            listadoConvenios.add(new PuntoConvenio("load"));
-            mAdapter.notifyItemInserted(listadoConvenios.size()-1);
-            pagina+=1;
-        }
-
-
+        String _urlWebService = vars.ipServer.concat("/ws/buscarConveniosGeneralPruebas");
         JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET, _urlWebService, null,
                 new Response.Listener<JSONObject>()
                 {
@@ -667,6 +659,7 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                             if(response.getBoolean("status"))
                             {
                                 listadoConvenios.clear();
+                                TOTAL_PAGES= Integer.parseInt(response.getString("numPaginas"));
 
                                 JSONArray listaPuntosConvenios = response.getJSONArray("convenios");
 
@@ -683,24 +676,12 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                     c.setImaProveedor(jsonObject.getString("imaProveedor"));
                                     c.setType(jsonObject.getString("type"));
                                     c.setNomCategoria(jsonObject.getString("nomCategoria"));
-                                    //c.setDirPunto(jsonObject.getString("dirPunto"));
-                                    //c.setDescPunto("Descuento del "+jsonObject.getString("descPunto")+"%");
-                                    //c.setLatPunto(jsonObject.getString("latPunto"));
-                                    //c.setLonPunto(jsonObject.getString("lonPunto"));
-                                    // c.setDistPunto(jsonObject.getString("dist"));
-                                    //c.setTimePunto(jsonObject.getString("time"));
-                                    //c.setNomCiudad(jsonObject.getString("nomCiudad"));
-                                    //c.setCalificacion(jsonObject.getString("numCalifica"));
-                                    //c.setCodTipo(jsonObject.getString("codTipo"));
-                                    //c.setNomCajero(jsonObject.getString("nomCajero"));
-                                    //c.setHorPunto(jsonObject.getString("horPunto"));
                                     editTextNumConvenios.setText(listaPuntosConvenios.length()+" Convenios encontrados");
                                     listadoConvenios.add(c);
                                 }
 
                                 layoutMacroEsperaConveniosFavoritos.setVisibility(View.GONE);
                                 linearHabilitarConvenios.setVisibility(View.VISIBLE);
-                                Log.i("resultado","resultado: bien");
 
                                 if (!((Activity) context).isFinishing())
                                 {
@@ -709,14 +690,9 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                         progressDialog.dismiss();
                                     }
                                 }
-
                             }
                             else
                             {
-                                mAdapter.setMoreDataAvailable(false);
-                                //layoutMacroEsperaConveniosFavoritos.setVisibility(View.GONE);
-                                //linearHabilitarConvenios.setVisibility(View.VISIBLE);
-                                Log.i("resultado","resultado: mal");
                                 if (!((Activity) context).isFinishing())
                                 {
                                     if(progressDialog.isShowing())
@@ -727,8 +703,22 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                 Snackbar.make(getActivity().findViewById(android.R.id.content),
                                         "No se encontraron resultados para '"+busqueda+"'", Snackbar.LENGTH_LONG).show();
                             }
-                            solicitando=false;
-                            mAdapter.notifyDataSetChanged();
+
+                            mAdapter.addAll(listadoConvenios);
+
+                            if (currentPage <= TOTAL_PAGES)
+                            {
+                                if(!isBuscando)
+                                {
+                                    mAdapter.addLoadingFooter();
+                                    Log.i("Finder","currentPage: "+currentPage);
+                                    Log.i("Finder","TOTAL_PAGES: "+TOTAL_PAGES);
+                                }
+                            }
+                            else
+                            {
+                                isLastPage = true;
+                            }
                         }
                         catch (JSONException e)
                         {
@@ -754,7 +744,6 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                             e.printStackTrace();
                         }
 
-
                         //mAdapter.notifyDataSetChanged();
                         //recycler_view_convenios.removeOnItemTouchListener(disabler);
                     }
@@ -945,7 +934,9 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                 headers.put("lon", String.valueOf(longitud));
                 headers.put("MyToken", gestionSharedPreferences.getString("MyToken"));
                 headers.put("codEmpleado", gestionSharedPreferences.getString("codEmpleado"));
-                headers.put("numIndex", String.valueOf(pagina));
+                //headers.put("numIndex", String.valueOf(pagina));
+                headers.put("numIndex", String.valueOf(currentPage));
+                headers.put("categos", ""+categos);
                 return headers;
             }
         };
@@ -954,9 +945,268 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
         jsonObjReq.setRetryPolicy(new DefaultRetryPolicy(20000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
     }
 
-    private void WebServiceGetPuntosConveniosP(final String busqueda)
+    private void WebServiceGetPuntosConveniosMore(final String busqueda)
     {
+        isLoad=true;
+        String _urlWebService = vars.ipServer.concat("/ws/buscarConveniosGeneralPruebas");//buscarConveniosGeneral es el produccion
+        Log.i("isLoaderMotion - isBuscando", ""+isBuscando);
+        Log.i("Paginador", ""+String.valueOf(pagina));
 
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET, _urlWebService, null,
+                new Response.Listener<JSONObject>()
+                {
+                    @Override
+                    public void onResponse(JSONObject response)
+                    {
+                        try
+                        {
+                            if(response.getBoolean("status"))
+                            {
+                                listadoConvenios.clear();
+
+                                JSONArray listaPuntosConvenios = response.getJSONArray("convenios");
+
+                                double aux=999999999;
+                                double distanciaActual=0;
+                                double distancias[]=new double[listaPuntosConvenios.length()];
+
+                                for (int i = 0; i < listaPuntosConvenios.length(); i++)
+                                {
+                                    JSONObject jsonObject = (JSONObject) listaPuntosConvenios.get(i);
+                                    final PuntoConvenio c = new PuntoConvenio();
+                                    c.setCodProveedor(jsonObject.getString("codProveedor"));
+                                    c.setNomProveedor(jsonObject.getString("nomProveedor"));
+                                    c.setImaProveedor(jsonObject.getString("imaProveedor"));
+                                    c.setType(jsonObject.getString("type"));
+                                    c.setNomCategoria(jsonObject.getString("nomCategoria"));
+                                    editTextNumConvenios.setText(listaPuntosConvenios.length()+" Convenios encontrados");
+                                    listadoConvenios.add(c);
+                                }
+
+                                layoutMacroEsperaConveniosFavoritos.setVisibility(View.GONE);
+                                linearHabilitarConvenios.setVisibility(View.VISIBLE);
+                                Log.i("resultado","resultado: bien");
+
+                                if (!((Activity) context).isFinishing())
+                                {
+                                    if(progressDialog.isShowing())
+                                    {
+                                        progressDialog.dismiss();
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Log.i("resultado","resultado: mal");
+                                if (!((Activity) context).isFinishing())
+                                {
+                                    if(progressDialog.isShowing())
+                                    {
+                                        progressDialog.dismiss();
+                                    }
+                                }
+                                Snackbar.make(getActivity().findViewById(android.R.id.content),
+                                        "No se encontraron resultados para '"+busqueda+"'", Snackbar.LENGTH_LONG).show();
+                            }
+
+                            mAdapter.removeLoadingFooter();
+                            isLoading = false;
+                            mAdapter.addAll(listadoConvenios);
+                            if (currentPage != TOTAL_PAGES) mAdapter.addLoadingFooter();
+                            else isLastPage = true;
+                        }
+                        catch (JSONException e)
+                        {
+                            if (!((Activity) context).isFinishing())
+                            {
+                                if (progressDialog.isShowing())
+                                {
+                                    progressDialog.dismiss();
+                                }
+                            }
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(), R.style.AlertDialogTheme));
+                            builder
+                                    .setMessage(e.getMessage().toString())
+                                    .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id) {
+                                        }
+                                    }).show();
+
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener()
+                {
+                    @Override
+                    public void onErrorResponse(VolleyError error)
+                    {
+                        if (!((Activity) context).isFinishing())
+                        {
+                            if (progressDialog.isShowing())
+                            {
+                                progressDialog.dismiss();
+                            }
+                        }
+
+                        Snackbar.make(getActivity().findViewById(android.R.id.content),
+                                ""+error.getMessage().toString(), Snackbar.LENGTH_LONG).show();
+
+                        if (error instanceof TimeoutError)
+                        {
+                            if (!((Activity) context).isFinishing())
+                            {
+                                if (progressDialog.isShowing())
+                                {
+                                    progressDialog.dismiss();
+                                }
+                            }
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
+                            builder
+                                    .setMessage("Error de conexión, sin respuesta del servidor.")
+                                    .setPositiveButton("Aceptar", new DialogInterface.OnClickListener()
+                                    {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id)
+                                        {
+                                        }
+                                    }).show();
+                        }
+                        else
+                        if (error instanceof NoConnectionError)
+                        {
+                            if (!((Activity) context).isFinishing())
+                            {
+                                if (progressDialog.isShowing())
+                                {
+                                    progressDialog.dismiss();
+                                }
+                            }
+                            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
+                            builder
+                                    .setMessage("Por favor, conectese a la red.")
+                                    .setPositiveButton("Aceptar", new DialogInterface.OnClickListener()
+                                    {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id)
+                                        {
+                                        }
+                                    }).show();
+                        }
+                        else
+                        if (error instanceof AuthFailureError)
+                        {
+                            if (!((Activity) context).isFinishing())
+                            {
+                                if (progressDialog.isShowing())
+                                {
+                                    progressDialog.dismiss();
+                                }
+                            }
+                            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
+                            builder
+                                    .setMessage("Error de autentificación en la red o el token de acceso no es valido. Cierra sesión e ingresa de nuevo por favor.")
+                                    .setPositiveButton("Aceptar", new DialogInterface.OnClickListener()
+                                    {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id)
+                                        {
+                                        }
+                                    }).show();
+                        }
+
+                        else
+
+                        if (error instanceof ServerError)
+                        {
+                            if (!((Activity) context).isFinishing())
+                            {
+                                if (progressDialog.isShowing())
+                                {
+                                    progressDialog.dismiss();
+                                }
+                            }
+                            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
+                            builder
+                                    .setMessage("Error server, sin respuesta del servidor.")
+                                    .setPositiveButton("Aceptar", new DialogInterface.OnClickListener()
+                                    {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id)
+                                        {
+                                        }
+                                    }).show();
+                        }
+                        else
+                        if (error instanceof NetworkError)
+                        {
+                            if (!((Activity) context).isFinishing())
+                            {
+                                if (progressDialog.isShowing())
+                                {
+                                    progressDialog.dismiss();
+                                }
+                            }
+                            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
+                            builder
+                                    .setMessage("Error de red, contacte a su proveedor de servicios.")
+                                    .setPositiveButton("Aceptar", new DialogInterface.OnClickListener()
+                                    {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id)
+                                        {
+                                        }
+                                    }).show();
+                        }
+                        else
+                        if (error instanceof ParseError)
+                        {
+                            if (!((Activity) context).isFinishing())
+                            {
+                                if (progressDialog.isShowing())
+                                {
+                                    progressDialog.dismiss();
+                                }
+                            }
+                            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
+                            builder
+                                    .setMessage("Error de conversión Parser, contacte a su proveedor de servicios.")
+                                    .setPositiveButton("Aceptar", new DialogInterface.OnClickListener()
+                                    {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id)
+                                        {
+                                        }
+                                    }).show();
+                        }
+                    }
+                })
+        {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError
+            {
+                HashMap<String, String> headers = new HashMap <String, String>();
+                headers.put("Content-Type", "application/json; charset=utf-8");
+                headers.put("WWW-Authenticate", "xBasic realm=".concat(""));
+                headers.put("buscar", TextUtils.isEmpty(busqueda)?"":busqueda);
+                headers.put("lat", String.valueOf(latitud));
+                headers.put("lon", String.valueOf(longitud));
+                headers.put("MyToken", gestionSharedPreferences.getString("MyToken"));
+                headers.put("codEmpleado", gestionSharedPreferences.getString("codEmpleado"));
+                headers.put("numIndex", String.valueOf(currentPage));
+                return headers;
+            }
+        };
+
+        ControllerSingleton.getInstance().addToReqQueue(jsonObjReq, "_requestbuscar");
+        jsonObjReq.setRetryPolicy(new DefaultRetryPolicy(20000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+    }
+
+    private void WebServiceFinderConvenio(final String busqueda)
+    {
         String _urlWebService = vars.ipServer.concat("/ws/buscarConveniosGeneral");
         JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET, _urlWebService, null,
                 new Response.Listener<JSONObject>()
@@ -980,36 +1230,21 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                 {
                                     JSONObject jsonObject = (JSONObject) listaPuntosConvenios.get(i);
                                     final PuntoConvenio c = new PuntoConvenio();
-                                    //c.setCodPunto(jsonObject.getString("codPunto"));
                                     c.setCodProveedor(jsonObject.getString("codProveedor"));
                                     c.setNomProveedor(jsonObject.getString("nomProveedor"));
                                     c.setImaProveedor(jsonObject.getString("imaProveedor"));
                                     c.setType(jsonObject.getString("type"));
                                     c.setNomCategoria(jsonObject.getString("nomCategoria"));
-                                    //c.setDirPunto(jsonObject.getString("dirPunto"));
-
-                                  /*  if(TextUtils.equals(jsonObject.getString("descPunto"),"0"))
-                                    {
-                                        c.setDescPunto("0");
-                                    }
-                                    else
-                                    {
-                                        c.setDescPunto("Descuento del "+jsonObject.getString("descPunto")+"%");
-                                    }*/
-
-
-
-                                   /* c.setLatPunto(jsonObject.getString("latPunto"));
-                                    c.setLonPunto(jsonObject.getString("lonPunto"));
-                                    c.setDistPunto(jsonObject.getString("dist"));
-                                    c.setTimePunto(jsonObject.getString("time"));
-                                    c.setNomCiudad(jsonObject.getString("nomCiudad"));
-                                    c.setCalificacion(jsonObject.getString("numCalifica"));
-                                    c.setCodTipo(jsonObject.getString("codTipo"));
-                                    c.setNomCajero(jsonObject.getString("nomCajero"));
-                                    c.setHorPunto(jsonObject.getString("horPunto"));*/
-                                    editTextNumConvenios.setText("Se han encontrado ("+listaPuntosConvenios.length()+") coincidencias.");
                                     listadoConvenios.add(c);
+                                }
+
+                                if(listadoConvenios.size()==1)
+                                {
+                                    editTextNumConvenios.setText("Se ha encontrado ("+listaPuntosConvenios.length()+") coincidencia.");
+                                }
+                                else
+                                {
+                                    editTextNumConvenios.setText("Se han encontrado ("+listaPuntosConvenios.length()+") coincidencias.");
                                 }
 
                                 editTextNumConvenios.setVisibility(View.VISIBLE);
@@ -1026,12 +1261,12 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                     }
                                 }
 
+                                isLoading = false;
+                                mAdapter.addAll(listadoConvenios);
+                                isLastPage = true;
                             }
                             else
                             {
-                                //mAdapter.setMoreDataAvailable(false);
-                                //layoutMacroEsperaConveniosFavoritos.setVisibility(View.GONE);
-                                //linearHabilitarConvenios.setVisibility(View.VISIBLE);
                                 Log.i("resultado","resultado: mal");
                                 if (!((Activity) context).isFinishing())
                                 {
@@ -1043,7 +1278,6 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                 Snackbar.make(getActivity().findViewById(android.R.id.content),
                                         "No se encontraron resultados para '"+busqueda+"'", Snackbar.LENGTH_LONG).show();
                             }
-                            solicitando=false;
                             mAdapter.notifyDataSetChanged();
                         }
                         catch (JSONException e)
@@ -1053,10 +1287,8 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                 if (progressDialog.isShowing())
                                 {
                                     progressDialog.dismiss();
-
                                 }
                             }
-
 
                             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
                             builder
@@ -1070,9 +1302,6 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
 
                             e.printStackTrace();
                         }
-                        //mAdapter.notifyDataSetChanged();
-                        //recycler_view_convenios.removeOnItemTouchListener(disabler);
-
                     }
                 },
                 new Response.ErrorListener()
@@ -1080,19 +1309,16 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                     @Override
                     public void onErrorResponse(VolleyError error)
                     {
-
                         if (!((Activity) context).isFinishing())
                         {
                             if (progressDialog.isShowing())
                             {
                                 progressDialog.dismiss();
-
                             }
                         }
 
                         Snackbar.make(getActivity().findViewById(android.R.id.content),
                                 ""+error.getMessage().toString(), Snackbar.LENGTH_LONG).show();
-
 
                         if (error instanceof TimeoutError)
                         {
@@ -1101,10 +1327,8 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                 if (progressDialog.isShowing())
                                 {
                                     progressDialog.dismiss();
-
                                 }
                             }
-
 
                             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
                             builder
@@ -1117,9 +1341,7 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                         }
                                     }).show();
                         }
-
                         else
-
                         if (error instanceof NoConnectionError)
                         {
                             if (!((Activity) context).isFinishing())
@@ -1127,10 +1349,8 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                 if (progressDialog.isShowing())
                                 {
                                     progressDialog.dismiss();
-
                                 }
                             }
-
 
                             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
                             builder
@@ -1143,9 +1363,7 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                         }
                                     }).show();
                         }
-
                         else
-
                         if (error instanceof AuthFailureError)
                         {
                             if (!((Activity) context).isFinishing())
@@ -1153,10 +1371,8 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                 if (progressDialog.isShowing())
                                 {
                                     progressDialog.dismiss();
-
                                 }
                             }
-
 
                             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
                             builder
@@ -1179,10 +1395,8 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                 if (progressDialog.isShowing())
                                 {
                                     progressDialog.dismiss();
-
                                 }
                             }
-
 
                             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
                             builder
@@ -1195,9 +1409,7 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                         }
                                     }).show();
                         }
-
                         else
-
                         if (error instanceof NetworkError)
                         {
                             if (!((Activity) context).isFinishing())
@@ -1205,10 +1417,8 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                 if (progressDialog.isShowing())
                                 {
                                     progressDialog.dismiss();
-
                                 }
                             }
-
 
                             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
                             builder
@@ -1221,9 +1431,7 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                         }
                                     }).show();
                         }
-
                         else
-
                         if (error instanceof ParseError)
                         {
                             if (!((Activity) context).isFinishing())
@@ -1231,10 +1439,8 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                                 if (progressDialog.isShowing())
                                 {
                                     progressDialog.dismiss();
-
                                 }
                             }
-
 
                             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Buscar.this.getActivity(),R.style.AlertDialogTheme));
                             builder
@@ -1257,11 +1463,11 @@ public class Buscar extends Fragment implements OnMapReadyCallback,
                 headers.put("Content-Type", "application/json; charset=utf-8");
                 headers.put("WWW-Authenticate", "xBasic realm=".concat(""));
                 headers.put("buscar", TextUtils.isEmpty(busqueda)?"":busqueda);
+                headers.put("categos", TextUtils.isEmpty(categos)?"":categos);
                 headers.put("lat", String.valueOf(latitud));
                 headers.put("lon", String.valueOf(longitud));
                 headers.put("MyToken", gestionSharedPreferences.getString("MyToken"));
                 headers.put("codEmpleado", gestionSharedPreferences.getString("codEmpleado"));
-                headers.put("numIndex", "0");
                 return headers;
             }
         };

@@ -86,7 +86,7 @@ public class ConvenioDetalleAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     @Override
     public int getItemViewType(int position)
     {
-        if(listadoConvenios.get(position).getType().equals("convenio"))
+        if(listadoConvenios.get(position).getType().equals("punto"))
         {
             return TYPE_CONVENIO;
         }

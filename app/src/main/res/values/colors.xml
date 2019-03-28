@@ -4,6 +4,7 @@
     <color name="colorPrimaryDark">#e6ad42</color>
     <color name="colorAccent">#e6ad42</color>
     <color name="colorAzulApp">#f9112548</color>
+    <color name="colorAzulAppPressed">#F91E304E</color>
     <color name="colorAzulAppFondo">#112548</color>
     <color name="colorAzulAppTransparente">#e7112548</color>
 
